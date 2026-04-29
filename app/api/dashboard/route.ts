@@ -18,9 +18,17 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         take: 1,
       },
-      numerologyProfiles: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+      numerologyProfile: {
+        select: {
+          id: true,
+          lifePathNumber: true,
+          destinyNumber: true,
+          soulUrgeNumber: true,
+          personalityNumber: true,
+          generatedSummary: true,
+          birthDate: true,
+          createdAt: true,
+        },
       },
       palmScans: {
         orderBy: { createdAt: "desc" },
@@ -39,7 +47,7 @@ export async function GET() {
 
   return NextResponse.json({
     subscription: user.subscriptions[0] ?? null,
-    numerologyProfile: user.numerologyProfiles[0] ?? null,
+    numerologyProfile: user.numerologyProfile ?? null,
     latestPalmScan: user.palmScans[0] ?? null,
     recentInsights: user.oracleInsights,
   });

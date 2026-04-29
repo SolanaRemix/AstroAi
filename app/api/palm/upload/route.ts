@@ -24,6 +24,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing imageUrl" }, { status: 400 });
   }
 
+  // Reject base64 data URLs — they bloat the DB and risk exceeding request limits.
+  // The client should upload images to a storage provider (Vercel Blob / S3 / UploadThing)
+  // and pass only a short HTTPS URL here.
+  if (imageUrl.startsWith("data:")) {
+    return NextResponse.json(
+      {
+        error:
+          "Direct data URLs are not accepted. Upload the image to a storage provider and send an HTTPS URL.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (!imageUrl.startsWith("https://")) {
+    return NextResponse.json({ error: "imageUrl must be an HTTPS URL" }, { status: 400 });
+  }
+
+  if (imageUrl.length > 2048) {
+    return NextResponse.json({ error: "imageUrl exceeds maximum length of 2048 characters" }, { status: 400 });
+  }
+
   // Analyze palm image
   const result = await analyzePalmImage({ imageUrl, userId: user.id });
 

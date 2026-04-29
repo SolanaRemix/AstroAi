@@ -7,8 +7,19 @@ async function main() {
   console.log("🌱 Seeding database…");
 
   // Seed plans
-  const monthlyPriceId = process.env.STRIPE_PRICE_MONTHLY ?? "price_monthly_placeholder";
-  const yearlyPriceId = process.env.STRIPE_PRICE_YEARLY ?? "price_yearly_placeholder";
+  const monthlyPriceId = process.env.STRIPE_PRICE_MONTHLY;
+  const yearlyPriceId = process.env.STRIPE_PRICE_YEARLY;
+
+  if (!monthlyPriceId || !yearlyPriceId) {
+    console.warn(
+      "⚠️  STRIPE_PRICE_MONTHLY and/or STRIPE_PRICE_YEARLY are not set.\n" +
+        "   Plans will be seeded with placeholder price IDs that CANNOT be used for Stripe Checkout.\n" +
+        "   Set these env vars before seeding a production database."
+    );
+  }
+
+  const resolvedMonthlyPriceId = monthlyPriceId ?? "price_monthly_placeholder";
+  const resolvedYearlyPriceId = yearlyPriceId ?? "price_yearly_placeholder";
 
   const monthly = await prisma.plan.upsert({
     where: { slug: "monthly" },
@@ -19,7 +30,7 @@ async function main() {
       priceCents: 1499,
       currency: "usd",
       interval: "month",
-      stripePriceId: monthlyPriceId,
+      stripePriceId: resolvedMonthlyPriceId,
       isActive: true,
     },
   });
@@ -34,7 +45,7 @@ async function main() {
       priceCents: 11999,
       currency: "usd",
       interval: "year",
-      stripePriceId: yearlyPriceId,
+      stripePriceId: resolvedYearlyPriceId,
       isActive: true,
     },
   });

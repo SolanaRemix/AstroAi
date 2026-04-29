@@ -8,7 +8,7 @@ Live at: **[astrolife.vercel.app](https://astrolife.vercel.app)**
 
 ## Overview
 
-AstroLife is a full-stack Next.js 14 web application that provides:
+AstroLife is a full-stack Next.js 16 web application that provides:
 
 - **Numerology** — Life path, destiny, soul urge, and personality numbers from birth date + name
 - **Palm Reading** — Symbolic left-hand analysis (photo upload) with line interpretation
@@ -23,7 +23,7 @@ AstroLife is a full-stack Next.js 14 web application that provides:
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 14+ (App Router, TypeScript) |
+| Framework | Next.js 16 (App Router, TypeScript) |
 | UI | React + Tailwind CSS |
 | Auth | NextAuth v4 (Google OAuth) |
 | Database | PostgreSQL + Prisma ORM |

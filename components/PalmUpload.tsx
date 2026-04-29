@@ -15,24 +15,31 @@ interface PalmUploadProps {
 export function PalmUpload({ latestScan, onUpload, loading }: PalmUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
+    setUploadError(null);
+
+    // Show local preview immediately
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // In production, upload to UploadThing / Vercel Blob first, then pass URL.
-    // For now, use a data URL as a placeholder (TODO: replace with actual upload).
     setUploading(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result as string);
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-      await onUpload(dataUrl);
+      // TODO: Upload the file to your storage provider (Vercel Blob / S3 / UploadThing)
+      // and pass the returned HTTPS URL to onUpload().
+      //
+      // Example with Vercel Blob:
+      //   const { url } = await put(file.name, file, { access: "public" });
+      //   await onUpload(url);
+      //
+      // The API endpoint rejects data: URLs to prevent DB bloat.
+      // Until a storage provider is wired up, this button is intentionally disabled.
+      setUploadError(
+        "Image storage is not yet configured. Set up Vercel Blob or another provider to enable palm uploads."
+      );
     } finally {
       setUploading(false);
     }
@@ -82,6 +89,12 @@ export function PalmUpload({ latestScan, onUpload, loading }: PalmUploadProps) {
             </>
           )}
         </div>
+      )}
+
+      {uploadError && (
+        <p className="mt-3 text-sm text-amber-400 bg-amber-900/20 rounded-lg px-3 py-2">
+          {uploadError}
+        </p>
       )}
 
       <input

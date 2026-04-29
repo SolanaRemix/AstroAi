@@ -31,6 +31,9 @@ export async function POST(req: Request) {
   }
 
   const date = new Date(birthDate);
+  if (isNaN(date.getTime())) {
+    return NextResponse.json({ error: "Invalid birthDate" }, { status: 400 });
+  }
   const lifePathNumber = calculateLifePath(date);
   const destinyNumber = calculateDestiny(fullName);
   const soulUrgeNumber = calculateSoulUrge(fullName);

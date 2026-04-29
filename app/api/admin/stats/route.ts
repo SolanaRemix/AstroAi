@@ -21,7 +21,7 @@ export async function GET() {
     db.subscription.count({ where: { status: "active" } }),
     db.subscription.findMany({
       where: { status: "active" },
-      include: { plan: { select: { priceCents: true } } },
+      include: { plan: { select: { priceCents: true, interval: true } } },
     }),
     db.user.findMany({
       orderBy: { createdAt: "desc" },
@@ -36,7 +36,15 @@ export async function GET() {
     }),
   ]);
 
-  const mrrCents = activeSubs.reduce((sum, sub) => sum + (sub.plan?.priceCents ?? 0), 0);
+  // Normalize yearly plans to monthly equivalent for MRR estimate
+  const mrrCents = activeSubs.reduce((sum, sub) => {
+    if (!sub.plan) return sum;
+    const monthly =
+      sub.plan.interval === "year"
+        ? Math.round(sub.plan.priceCents / 12)
+        : sub.plan.priceCents;
+    return sum + monthly;
+  }, 0);
 
   return NextResponse.json({
     totalUsers,

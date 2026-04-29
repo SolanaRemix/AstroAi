@@ -67,7 +67,7 @@ model User {
   accounts           Account[]
   sessions           Session[]
   subscriptions      Subscription[]
-  numerologyProfiles NumerologyProfile[]
+  numerologyProfile  NumerologyProfile?
   palmScans          PalmScan[]
   oracleInsights     OracleInsight[]
 }

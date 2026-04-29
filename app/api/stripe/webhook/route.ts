@@ -33,6 +33,8 @@ export async function POST(req: Request) {
 
         if (!userId || !planId) break;
 
+        // Retrieve subscription and expand items so we can read per-item period dates
+        // (Stripe v22+ moves current_period_* from the root Subscription to SubscriptionItem)
         const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId, {
           expand: ["items"],
         });
@@ -82,14 +84,21 @@ export async function POST(req: Request) {
           paused: "inactive",
         };
 
+        // Period dates live on the SubscriptionItem in Stripe v22+
         const item = sub.items.data[0];
         const periodStart = item?.current_period_start ?? null;
         const periodEnd = item?.current_period_end ?? null;
 
-        await db.subscription.update({
+        // Use updateMany so a missing record (out-of-order delivery) is a no-op, not an error
+        await db.subscription.updateMany({
           where: { stripeSubscriptionId: sub.id },
           data: {
-            status: (statusMap[sub.status] ?? "inactive") as "active" | "canceled" | "past_due" | "trialing" | "inactive",
+            status: (statusMap[sub.status] ?? "inactive") as
+              | "active"
+              | "canceled"
+              | "past_due"
+              | "trialing"
+              | "inactive",
             currentPeriodStart: periodStart ? new Date(periodStart * 1000) : null,
             currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
           },
@@ -99,7 +108,8 @@ export async function POST(req: Request) {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        await db.subscription.update({
+        // Use updateMany so a missing record is a no-op rather than throwing
+        await db.subscription.updateMany({
           where: { stripeSubscriptionId: sub.id },
           data: { status: "canceled" },
         });

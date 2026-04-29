@@ -30,14 +30,14 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    // With strategy:"database" the `user` parameter in the session callback IS the
+    // persisted DB record provided by PrismaAdapter — no extra query needed.
     async session({ session, user }) {
-      if (session.user) {
-        const dbUser = await db.user.findUnique({
-          where: { email: session.user.email! },
-          select: { id: true, role: true },
-        });
-        session.user.id = dbUser?.id ?? "";
-        session.user.role = dbUser?.role ?? Role.USER;
+      if (session.user && user) {
+        session.user.id = user.id;
+        // PrismaAdapter passes all DB columns; cast to access our custom `role` field.
+        session.user.role =
+          (user as typeof user & { role: Role }).role ?? Role.USER;
       }
       return session;
     },
