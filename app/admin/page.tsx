@@ -176,6 +176,9 @@ export default function AdminPage() {
               "STRIPE_WEBHOOK_SECRET",
               "STRIPE_PRICE_MONTHLY",
               "STRIPE_PRICE_YEARLY",
+              "PALM_ML_ENDPOINT (optional)",
+              "AVATAR_GENERATION_ENDPOINT (optional)",
+              "GEMINI_API_KEY (optional)",
             ].map((k) => (
               <li key={k} className="flex items-center gap-2">
                 <span className="text-green-400">✓</span>
