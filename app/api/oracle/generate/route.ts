@@ -26,14 +26,15 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { templateSlug } = body as { templateSlug?: string };
 
-  // Fetch active oracle rules (and optionally a specific template)
+  // Fetch active oracle rules
   const rules = await db.oracleRule.findMany({ where: { isActive: true } });
 
-  let templateBody: string | null = null;
+  // Optionally load a specific oracle template for future Gemini-powered generation
+  let templateNote: string | null = null;
   if (templateSlug) {
     const template = await db.oracleTemplate.findUnique({ where: { slug: templateSlug } });
     if (template?.isActive) {
-      templateBody = template.promptTemplate;
+      templateNote = `Template "${template.name}" applied.`;
     }
   }
 
@@ -63,6 +64,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     insights: saved,
-    templateUsed: templateBody ?? null,
+    templateNote: templateNote ?? null,
   });
 }

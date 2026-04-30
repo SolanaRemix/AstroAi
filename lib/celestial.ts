@@ -121,7 +121,8 @@ export function getRisingSign(timeOfBirth: string | undefined, userId: string): 
   let hour = 6; // Default to sunrise
   if (timeOfBirth) {
     const parts = timeOfBirth.split(":");
-    hour = parseInt(parts[0] ?? "6", 10);
+    const parsed = parseInt(parts[0] ?? "6", 10);
+    hour = !isNaN(parsed) && parsed >= 0 && parsed <= 23 ? parsed : 6;
   } else {
     const hash = userId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
     hour = hash % 24;
