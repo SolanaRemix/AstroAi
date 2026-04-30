@@ -23,7 +23,11 @@ async function main() {
 
   const monthly = await prisma.plan.upsert({
     where: { slug: "monthly" },
-    update: {},
+    update: {
+      stripePriceId: resolvedMonthlyPriceId,
+      priceCents: 1499,
+      isActive: true,
+    },
     create: {
       name: "AstroLife Monthly",
       slug: "monthly",
@@ -38,7 +42,11 @@ async function main() {
 
   const yearly = await prisma.plan.upsert({
     where: { slug: "yearly" },
-    update: {},
+    update: {
+      stripePriceId: resolvedYearlyPriceId,
+      priceCents: 11999,
+      isActive: true,
+    },
     create: {
       name: "AstroLife Yearly",
       slug: "yearly",

@@ -14,7 +14,13 @@ export async function GET() {
     where: { email: session.user.email },
     include: {
       subscriptions: {
-        include: { plan: true },
+        select: {
+          status: true,
+          currentPeriodStart: true,
+          currentPeriodEnd: true,
+          createdAt: true,
+          plan: { select: { name: true, priceCents: true, interval: true, currency: true } },
+        },
         orderBy: { createdAt: "desc" },
         take: 1,
       },

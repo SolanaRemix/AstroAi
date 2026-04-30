@@ -110,13 +110,25 @@ export function PalmUpload({ latestScan, onUpload, loading }: PalmUploadProps) {
       />
 
       {preview && !latestScan && (
-        <Button
-          className="w-full mt-4"
-          disabled={uploading || loading}
-          onClick={() => fileRef.current?.click()}
-        >
-          {uploading || loading ? "Analyzing your palm…" : "Analyze Palm"}
-        </Button>
+        <div className="flex gap-2 mt-4">
+          <Button
+            className="flex-1"
+            disabled={uploading || loading || !!uploadError}
+            onClick={() => {
+              // onUpload is called here once a storage provider is wired up and
+              // handleFile passes a real HTTPS URL instead of a data URL.
+            }}
+          >
+            {uploading || loading ? "Analyzing your palm…" : "Analyze Palm"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={uploading || loading}
+            onClick={() => fileRef.current?.click()}
+          >
+            Re-select
+          </Button>
+        </div>
       )}
     </div>
   );
