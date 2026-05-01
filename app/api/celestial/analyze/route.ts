@@ -28,6 +28,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing dateOfBirth" }, { status: 400 });
   }
 
+  // Validate dateOfBirth is a parseable date
+  if (isNaN(new Date(dateOfBirth).getTime())) {
+    return NextResponse.json({ error: "Invalid dateOfBirth — must be a valid date string (e.g. YYYY-MM-DD)" }, { status: 400 });
+  }
+
+  // Verify palmScanId belongs to the current user (prevent cross-user data linkage)
+  let resolvedPalmScanId: string | null = null;
+  if (palmScanId) {
+    const palmScan = await db.palmScan.findUnique({ where: { id: palmScanId } });
+    if (!palmScan || palmScan.userId !== user.id) {
+      return NextResponse.json({ error: "Palm scan not found" }, { status: 404 });
+    }
+    resolvedPalmScanId = palmScanId;
+  }
+
   const result = analyzeCelestial({
     dateOfBirth,
     timeOfBirth,
@@ -39,7 +54,7 @@ export async function POST(req: Request) {
   const celestialInsight = await db.celestialInsight.create({
     data: {
       userId: user.id,
-      palmScanId: palmScanId ?? null,
+      palmScanId: resolvedPalmScanId,
       dateOfBirth,
       timeOfBirth: timeOfBirth ?? null,
       placeOfBirth: placeOfBirth ?? null,

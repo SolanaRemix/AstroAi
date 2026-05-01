@@ -11,11 +11,10 @@ import { generatePalmSummary } from "@/lib/palm";
  * computes line segment mappings from landmark positions, and returns
  * symbolic line interpretations without persisting to the database.
  *
- * Landmark index mapping (MediaPipe Hands):
- *  - Life line:  landmarks 0, 1, 5, 9, 13, 17 (palm base + finger roots)
- *  - Heart line: landmarks 5, 6, 10, 11 (upper palm horizontal)
- *  - Head line:  landmarks 1, 2, 3, 4, 5 (thumb–index axis)
- *  - Fate line:  landmarks 0, 9 (wrist to middle finger base)
+ * Input landmarks use the standard MediaPipe Hands 21-point indexing.
+ * The specific landmark groupings used for life, heart, head, and fate
+ * lines are defined by `extractLines()` below and should be treated as
+ * the authoritative server-side mapping.
  */
 
 interface Landmark {
@@ -125,6 +124,22 @@ export async function POST(req: Request) {
   if (!landmarks || !Array.isArray(landmarks) || landmarks.length < 21) {
     return NextResponse.json(
       { error: "landmarks must be an array of at least 21 points" },
+      { status: 400 }
+    );
+  }
+
+  // Validate that every landmark has finite numeric x, y, z
+  const invalidIdx = landmarks.findIndex(
+    (lm) =>
+      typeof lm !== "object" ||
+      lm === null ||
+      !isFinite(lm.x) ||
+      !isFinite(lm.y) ||
+      !isFinite(lm.z)
+  );
+  if (invalidIdx !== -1) {
+    return NextResponse.json(
+      { error: `Landmark at index ${invalidIdx} has invalid or non-finite x/y/z values` },
       { status: 400 }
     );
   }

@@ -80,11 +80,16 @@ const SIGN_MEANINGS: Record<ZodiacSign, { keywords: string[]; themes: string[] }
 /**
  * Determine Sun Sign from date of birth (month/day).
  * Uses standard Western tropical zodiac date ranges.
+ * Parses month/day via UTC to avoid timezone-dependent day shifts.
+ * Throws if dateOfBirth is not a valid date string.
  */
 export function getSunSign(dateOfBirth: string): ZodiacSign {
   const d = new Date(dateOfBirth);
-  const month = d.getMonth() + 1; // 1–12
-  const day = d.getDate();
+  if (isNaN(d.getTime())) {
+    throw new Error(`Invalid dateOfBirth: ${dateOfBirth}`);
+  }
+  const month = d.getUTCMonth() + 1; // 1–12
+  const day = d.getUTCDate();
 
   if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "Aries";
   if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "Taurus";
