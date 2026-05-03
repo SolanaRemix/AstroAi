@@ -55,14 +55,16 @@ enum PlanInterval {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  image              String?
+  role               Role      @default(USER)
+  onboardingStep     Int       @default(1)
+  onboardingComplete Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   accounts           Account[]
   sessions           Session[]
@@ -70,6 +72,7 @@ model User {
   numerologyProfile  NumerologyProfile?
   palmScans          PalmScan[]
   oracleInsights     OracleInsight[]
+  celestialInsights  CelestialInsight[]
 }
 
 model Account {
@@ -178,8 +181,9 @@ model PalmScan {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  oracleInsights OracleInsight[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oracleInsights    OracleInsight[]
+  celestialInsights CelestialInsight[]
 }
 
 model OracleInsight {
@@ -207,6 +211,37 @@ model OracleRule {
   isActive    Boolean        @default(true)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+model OracleTemplate {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String      @unique
+  theme          OracleTheme
+  promptTemplate String      @db.Text
+  variables      Json?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model CelestialInsight {
+  id               String    @id @default(cuid())
+  userId           String
+  palmScanId       String?
+  dateOfBirth      DateTime
+  timeOfBirth      String?
+  placeOfBirth     String?
+  sunSign          String?
+  moonSign         String?
+  risingSign       String?
+  themes           Json?
+  generatedSummary String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  palmScan PalmScan? @relation(fields: [palmScanId], references: [id])
 }
 
 model SystemLog {

@@ -44,6 +44,10 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         take: 6,
       },
+      celestialInsights: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
   });
 
@@ -56,5 +60,9 @@ export async function GET() {
     numerologyProfile: user.numerologyProfile ?? null,
     latestPalmScan: user.palmScans[0] ?? null,
     recentInsights: user.oracleInsights,
+    latestCelestialInsight: user.celestialInsights[0] ?? null,
+    onboardingStep: user.onboardingStep,
+    onboardingComplete: user.onboardingComplete,
   });
 }
+
