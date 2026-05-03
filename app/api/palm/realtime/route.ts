@@ -44,21 +44,21 @@ function classifyStrength(value: number, low: number, high: number): "weak" | "m
 }
 
 function extractLines(landmarks: Landmark[]): LineData[] {
-  // Life line: arc from wrist (0) through palm (1,5,9,13,17)
+  // Life line: arc from wrist (0) through palm base points (1, 5, 9)
   const lifePoints = [landmarks[0], landmarks[1], landmarks[5], landmarks[9]].filter(Boolean);
   const lifeLength = lifePoints.reduce((sum, p, i) =>
     i === 0 ? 0 : sum + distance(lifePoints[i - 1], p), 0
   );
   const lifeDepth = Math.abs(avgDepth(lifePoints));
 
-  // Heart line: horizontal upper palm (5–17 axis)
+  // Heart line: finger-base horizontal axis (5, 9, 13, 17)
   const heartPoints = [landmarks[5], landmarks[9], landmarks[13], landmarks[17]].filter(Boolean);
   const heartLength = heartPoints.reduce((sum, p, i) =>
     i === 0 ? 0 : sum + distance(heartPoints[i - 1], p), 0
   );
   const heartDepth = Math.abs(avgDepth(heartPoints));
 
-  // Head line: thumb–index axis (1,2,3,4,5)
+  // Head line: index-finger base arc (1, 2, 5, 9)
   const headPoints = [landmarks[1], landmarks[2], landmarks[5], landmarks[9]].filter(Boolean);
   const headLength = headPoints.reduce((sum, p, i) =>
     i === 0 ? 0 : sum + distance(headPoints[i - 1], p), 0
@@ -140,6 +140,22 @@ export async function POST(req: Request) {
   if (invalidIdx !== -1) {
     return NextResponse.json(
       { error: `Landmark at index ${invalidIdx} has invalid or non-finite x/y/z values` },
+      { status: 400 }
+    );
+  }
+
+  // Reject out-of-range coordinates: MediaPipe normalizes x/y to [0,1] and z is a
+  // small relative depth; values outside these bounds indicate malformed input that
+  // would cause distance() to overflow to Infinity and break .toFixed() later.
+  const outOfRangeIdx = landmarks.findIndex(
+    (lm) => lm.x < 0 || lm.x > 1 || lm.y < 0 || lm.y > 1 || Math.abs(lm.z) > 1
+  );
+  if (outOfRangeIdx !== -1) {
+    return NextResponse.json(
+      {
+        error: `Landmark at index ${outOfRangeIdx} has out-of-range coordinates. ` +
+          "MediaPipe x/y must be in [0,1] and |z| must be ≤ 1.",
+      },
       { status: 400 }
     );
   }

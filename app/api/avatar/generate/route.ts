@@ -55,14 +55,17 @@ export async function POST() {
     .filter(Boolean)
     .join(" ");
 
-  // If a real generation endpoint is configured, call it
+  // If a real generation endpoint is configured, call it (10 s timeout)
   const endpoint = process.env.AVATAR_GENERATION_ENDPOINT;
   if (endpoint) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
+        signal: controller.signal,
       });
       if (res.ok) {
         const data = await res.json() as { imageUrl?: string };
@@ -70,6 +73,8 @@ export async function POST() {
       }
     } catch {
       // Fall through to prompt-only response
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

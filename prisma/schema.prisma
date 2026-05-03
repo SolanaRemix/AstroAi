@@ -229,7 +229,7 @@ model CelestialInsight {
   id               String    @id @default(cuid())
   userId           String
   palmScanId       String?
-  dateOfBirth      String
+  dateOfBirth      DateTime
   timeOfBirth      String?
   placeOfBirth     String?
   sunSign          String?

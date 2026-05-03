@@ -50,31 +50,33 @@ export async function POST(req: Request) {
     userId: user.id,
   });
 
-  // Store the celestial insight
-  const celestialInsight = await db.celestialInsight.create({
-    data: {
-      userId: user.id,
-      palmScanId: resolvedPalmScanId,
-      dateOfBirth,
-      timeOfBirth: timeOfBirth ?? null,
-      placeOfBirth: placeOfBirth ?? null,
-      sunSign: result.sunSign,
-      moonSign: result.moonSign,
-      risingSign: result.risingSign,
-      themes: result.themes,
-      generatedSummary: result.generatedSummary,
-    },
-  });
-
-  // Advance onboarding to step 4 if not yet complete
-  if (!user.onboardingComplete) {
-    await db.user.update({
-      where: { id: user.id },
+  // Store insight and advance onboarding atomically so the two writes
+  // cannot diverge if the request fails between them.
+  const celestialInsight = await db.$transaction(async (tx) => {
+    const insight = await tx.celestialInsight.create({
       data: {
-        onboardingStep: 4,
+        userId: user.id,
+        palmScanId: resolvedPalmScanId,
+        dateOfBirth: new Date(dateOfBirth),
+        timeOfBirth: timeOfBirth ?? null,
+        placeOfBirth: placeOfBirth ?? null,
+        sunSign: result.sunSign,
+        moonSign: result.moonSign,
+        risingSign: result.risingSign,
+        themes: result.themes,
+        generatedSummary: result.generatedSummary,
       },
     });
-  }
+
+    if (!user.onboardingComplete) {
+      await tx.user.update({
+        where: { id: user.id },
+        data: { onboardingStep: 4 },
+      });
+    }
+
+    return insight;
+  });
 
   return NextResponse.json({ celestialInsight, result });
 }
